@@ -1,0 +1,14 @@
+---
+- name: Maak de manifestenmap aan op de Control Plane
+  file:
+    path: /tmp/k8s-manifests
+    state: directory
+
+- name: Kopieer de blog Kubernetes manifesten naar de Control Plane
+  copy:
+    src: k8s-manifests/blog-app.yaml
+    dest: /tmp/k8s-manifests/blog-app.yaml
+
+- name: Pas de website toe op het Kubernetes cluster
+  command: sudo k3s kubectl apply -f /tmp/k8s-manifests/blog-app.yaml
+  changed_when: false

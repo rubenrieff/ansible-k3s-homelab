@@ -1,0 +1,12 @@
+---
+- name: Controleer en maak de portainer namespace aan
+  shell: sudo k3s kubectl get namespace portainer || sudo k3s kubectl create namespace portainer
+  changed_when: false
+
+- name: Installeer Portainer (Kubernetes UI)
+  command: sudo k3s kubectl apply -n portainer -f https://downloads.portainer.io/ce-lts/portainer.yaml
+  changed_when: false
+  
+- name: Wacht tot Portainer is opgestart
+  command: sudo k3s kubectl wait --for=condition=available --timeout=120s deployment/portainer -n portainer
+  changed_when: false

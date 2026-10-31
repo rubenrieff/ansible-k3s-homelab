@@ -1,0 +1,9 @@
+---
+- name: Installeer K3s Agent (Worker) en join het cluster
+  shell: curl -sfL https://get.k3s.io | K3S_URL=https://192.168.15.132:6443 K3S_TOKEN={{ hostvars['k8s-controlplane']['k3s_token']['stdout'] | trim }} sh -
+
+- name: Zorg dat de K3s Agent service draait
+  service:
+    name: k3s-agent
+    state: started
+    enabled: yes

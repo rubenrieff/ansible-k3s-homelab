@@ -1,0 +1,24 @@
+---
+- name: Installeer HAProxy
+  apt:
+    name: haproxy
+    state: present
+    update_cache: yes
+
+- name: Plaats de HAProxy configuratie (via template)
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+  register: haproxy_config
+
+- name: Herstart HAProxy als de configuratie is aangepast
+  service:
+    name: haproxy
+    state: restarted
+  when: haproxy_config.changed
+
+- name: Zorg dat HAProxy draait en start bij boot
+  service:
+    name: haproxy
+    state: started
+    enabled: yes

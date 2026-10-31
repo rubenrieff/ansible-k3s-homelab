@@ -1,0 +1,53 @@
+---
+- name: Schakel de UFW firewall uit (Homelab setting)
+  service:
+    name: ufw
+    state: stopped
+    enabled: no
+
+- name: Installeer MariaDB Server
+  apt:
+    name: mariadb-server
+    state: present
+    update_cache: yes
+
+- name: Zorg dat MariaDB op het netwerk luistert (voor de Kubernetes workers)
+  lineinfile:
+    path: /etc/mysql/mariadb.conf.d/50-server.cnf
+    regexp: '^bind-address'
+    line: 'bind-address            = 0.0.0.0'
+  register: mariadb_netwerk
+
+- name: Herstart MariaDB als de netwerkconfiguratie is aangepast
+  service:
+    name: mariadb
+    state: restarted
+  when: mariadb_netwerk.changed
+
+- name: Zorg dat MariaDB draait en start bij boot
+  service:
+    name: mariadb
+    state: started
+    enabled: yes
+
+- name: Verwijder anonieme gebruikers uit de database (Beveiliging)
+  command: mysql -u root -e "DELETE FROM mysql.user WHERE User='';"
+  changed_when: false
+
+- name: Kopieer het SQL-schema naar de database server
+  copy:
+    src: init_blog.sql
+    dest: /tmp/init_blog.sql
+
+- name: Importeer het SQL-schema (Database, Tabellen en Thema's)
+  shell: mysql -u root < /tmp/init_blog.sql
+  changed_when: false
+
+- name: Test of de ict_blog database succesvol is aangemaakt
+  command: mysql -u root -e "SHOW DATABASES LIKE 'ict_blog';"
+  register: db_status
+  changed_when: false
+
+- name: Toon succesbericht
+  debug:
+    msg: "De ICT Blog database is live en gevuld met thema's!"

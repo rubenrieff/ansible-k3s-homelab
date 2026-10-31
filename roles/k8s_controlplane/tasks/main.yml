@@ -1,0 +1,16 @@
+---
+- name: Download en installeer K3s Control Plane
+  shell: curl -sfL https://get.k3s.io | sh -
+  args:
+    creates: /usr/local/bin/k3s
+
+- name: Controleer of K3s succesvol is gestart
+  service:
+    name: k3s
+    state: started
+    enabled: yes
+
+- name: Haal het node-token op voor de workers
+  command: cat /var/lib/rancher/k3s/server/node-token
+  register: k3s_token
+  changed_when: false

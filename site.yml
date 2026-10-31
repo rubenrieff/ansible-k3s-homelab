@@ -1,0 +1,50 @@
+---
+- name: Basisconfiguratie voor alle servers
+  hosts: all
+  become: yes
+  tasks:
+    - name: Stel de juiste Linux hostname in
+      hostname:
+        name: "{{ inventory_hostname }}"
+
+    - name: Update /etc/hosts voor netwerkstabiliteit
+      lineinfile:
+        path: /etc/hosts
+        regexp: '^127\.0\.1\.1'
+        line: "127.0.1.1 {{ inventory_hostname }}"
+
+- name: Configureer de Loadbalancer
+  hosts: loadbalancers
+  become: yes
+  roles:
+    - loadbalancer
+
+- name: Configureer de Database
+  hosts: database
+  become: yes
+  roles:
+    - database
+
+- name: Configureer de Kubernetes Control Plane
+  hosts: control_plane
+  become: yes
+  roles:
+    - k8s_controlplane
+
+- name: Configureer de Kubernetes Workers
+  hosts: workers
+  become: yes
+  roles:
+    - k8s_worker
+
+- name: Configureer de Kubernetes Applicatie (ICT Blog)
+  hosts: control_plane
+  become: yes
+  roles:
+    - k8s_app
+
+- name: Configureer de Kubernetes Dashboard UI (Portainer)
+  hosts: control_plane
+  become: yes
+  roles:
+    - k8s_ui
